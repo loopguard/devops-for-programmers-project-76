@@ -1,0 +1,58 @@
+- name: Prepare servers for deployment
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install dependencies via Galaxy roles
+      ansible.builtin.import_role:
+        name: geerlingguy.pip
+      tags: setup
+
+    - name: Install docker pip module
+      ansible.builtin.pip:
+        name: docker
+        state: present
+      tags: setup
+
+- name: Deploy Redmine application
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure Redmine directory exists
+      ansible.builtin.file:
+        path: "/home/redmine"
+        state: directory
+        mode: '0755'
+      tags: deploy
+
+    - name: Create .env file from template
+      ansible.builtin.template:
+        src: templates/redmine.env.j2
+        dest: .env
+        mode: '0644'
+      tags: deploy
+
+    - name: Pull redmine Docker image
+      community.docker.docker_image:
+        name: redmine
+        source: pull
+      tags: deploy
+
+    - name: Run Redmine container
+      community.docker.docker_container:
+        name: redmine
+        image: redmine
+        restart_policy: unless-stopped
+        ports:
+          - "3000:3000"
+        env_file: .env
+        state: started
+      tags: deploy
+
+- name: Install and start DataDog Agent
+  hosts: webservers
+  become: true
+  roles:
+    - { role: datadog.datadog, become: true }
+  tags: monitoring

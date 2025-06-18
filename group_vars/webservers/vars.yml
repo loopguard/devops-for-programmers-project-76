@@ -1,0 +1,20 @@
+redmine_db_host: "managed-postgresql-c9qu1qb0o87fusef0dao-sudosu"
+redmine_db_user: "redmine_user"
+redmine_db_password: "{{ vault_redmine_db_password }}"
+redmine_db_name: "redmine_db"
+redmine_db_port: "6432"
+
+datadog_api_key: "{{ datadog_api_key }}"
+
+datadog_site: "datadoghq.eu"
+datadog_apm_instrumentation_enabled: "all"
+datadog_checks:
+  http_check:
+    init_config:
+    instances:
+      - name: check my site
+        url: http://localhost
+        timeout: 5
+        tags:
+          - "env:production"
+          - "app:redmine"
