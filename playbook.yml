@@ -1,0 +1,9 @@
+---
+- name: Setup servers with pip, docker and datadog
+  hosts: all
+  become: true
+  
+  roles:
+    - geerlingguy.pip
+    - geerlingguy.docker
+    - datadog.datadog 

@@ -1,0 +1,48 @@
+---
+- name: Deploy Redmine application
+  hosts: webservers
+  become: true
+  
+  tasks:
+    - name: Debug variables
+      debug:
+        msg: 
+          - "redmine_container_name: {{ redmine_container_name | default('NOT DEFINED') }}"
+          - "redmine_port: {{ redmine_port | default('NOT DEFINED') }}"
+          - "redmine_image: {{ redmine_image | default('NOT DEFINED') }}"
+    
+    - name: Create application directory
+      file:
+        path: /opt/redmine
+        state: directory
+        mode: '0755'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+    
+    - name: Create .env file from template
+      template:
+        src: templates/redmine.env.template
+        dest: /opt/redmine/.env
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+    
+    - name: Stop and remove existing Redmine container
+      docker_container:
+        name: "{{ redmine_container_name }}"
+        state: absent
+        force_kill: true
+      ignore_errors: true
+    
+    - name: Run Redmine container
+      docker_container:
+        name: "{{ redmine_container_name }}"
+        image: "{{ redmine_image }}"
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "{{ redmine_port }}:3000"
+        env_file: /opt/redmine/.env
+        volumes:
+          - /opt/redmine/files:/usr/src/redmine/files
+          - /opt/redmine/log:/usr/src/redmine/log 

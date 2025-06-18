@@ -1,0 +1,28 @@
+# Переменные окружения
+.env*
+
+# Сгенерированные файлы
+inventory.ini
+
+# Ansible
+*.retry
+group_vars/*/vault.yml
+
+# SSH ключи
+*.pem
+*.key
+id_rsa*
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db 

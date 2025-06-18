@@ -1,0 +1,60 @@
+name: Deploy to Yandex Cloud
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install Ansible
+      run: |
+        sudo apt update
+        sudo apt install -y ansible
+        
+    - name: Create .env file
+      run: |
+        cat > .env << EOF
+        APP_SERVER1_IP=${{ secrets.APP_SERVER1_IP }}
+        APP_SERVER2_IP=${{ secrets.APP_SERVER2_IP }}
+        ANSIBLE_USER=${{ secrets.ANSIBLE_USER }}
+        ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        REDMINE_SECRET_KEY_BASE=${{ secrets.REDMINE_SECRET_KEY_BASE }}
+        DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
+        ANSIBLE_SSH_KEY_PATH=~/.ssh/id_rsa
+        EOF
+
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.APP_SERVER1_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.APP_SERVER2_IP }} >> ~/.ssh/known_hosts
+
+    - name: Debug .env
+      run: cat .env
+
+    - name: Generate inventory
+      run: make generate-inventory
+
+    - name: Install dependencies
+      run: make install-deps
+
+    - name: Deploy application
+      run: |
+        echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" | make deploy
+      env:
+        ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        ANSIBLE_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }} 

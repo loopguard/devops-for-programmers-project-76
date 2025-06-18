@@ -1,0 +1,33 @@
+---
+# Переменные для группы webservers
+pip_package: python3-pip
+pip_executable: pip3
+pip_install_packages:
+  - name: docker
+    version: "6.1.2"
+
+# Настройки Docker
+docker_users:
+  - "{{ ansible_user }}"
+
+docker_install_compose_plugin: true
+docker_install_compose_switch: true
+
+# Настройки Redmine
+redmine_port: 3000
+redmine_container_name: redmine
+redmine_image: redmine:latest
+redmine_relative_url_root: /
+
+# Настройки DataDog
+datadog_enabled: true
+datadog_api_key: "{{ vault_datadog_api_key }}"
+datadog_site: datadoghq.com
+datadog_agent_flavor: datadog-agent
+datadog_config:
+  apm_config:
+    enabled: true
+  logs_config:
+    enabled: true
+  process_config:
+    enabled: true 

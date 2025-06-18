@@ -1,0 +1,30 @@
+---
+- name: Install and configure DataDog agent
+  hosts: webservers
+  become: true
+  
+  tasks:
+    - name: Install DataDog agent
+      include_role:
+        name: datadog.datadog
+      vars:
+        datadog_enabled: true
+        datadog_api_key: "{{ vault_datadog_api_key }}"
+        datadog_site: datadoghq.com
+        datadog_agent_flavor: datadog-agent
+        datadog_config:
+          apm_config:
+            enabled: true
+          logs_config:
+            enabled: true
+          process_config:
+            enabled: true
+          http_check:
+            - name: "Redmine Health Check"
+              url: "http://localhost:{{ redmine_port }}"
+              timeout: 5
+              threshold: 1
+              window: 5
+              tags:
+                - "service:redmine"
+                - "environment:production" 

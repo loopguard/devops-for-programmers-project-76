@@ -1,0 +1,13 @@
+---
+# Роли
+roles:
+  - name: geerlingguy.pip
+    version: 1.0.0
+  - name: geerlingguy.docker
+    version: 7.0.0
+  - name: datadog.datadog
+    version: 4.0.0
+
+# Коллекции
+collections:
+  - name: community.docker 
